@@ -50,7 +50,7 @@ public class PickupTarget : UdonSharpBehaviour
 
     public override void OnPlayerJoined(VRCPlayerApi player)
     {
-        if (!_debugMode)
+        if (!_debugMode || player.isLocal)
             return;
         _grabber = player;
         _boneToFollow = HumanBodyBones.LeftHand;
