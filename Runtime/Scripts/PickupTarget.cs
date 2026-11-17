@@ -1,20 +1,60 @@
 ﻿
 using UdonSharp;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 using VRC.SDK3.Data;
 using VRC.SDK3.Persistence;
 using VRC.SDK3.UdonNetworkCalling;
 using VRC.SDKBase;
 using VRC.Udon;
+using VRC.Udon.Common;
 
 public class PickupTarget : UdonSharpBehaviour
 {
     private VRCPlayerApi _grabber;
-    private HumanBodyBones _boneToFollow;
     private VRCPlayerApi _localPlayer;
-    private Vector3 _offset;
-    private Quaternion _rotationOffset;
+    [SerializeField] private Vector3 _offset;
+
+    [Header("--- Grab Settings ---")]
+    [Tooltip("Speed at which grabbed player will move toward his grabber's limb.")]
+    [SerializeField] private float _followBoneSpeed = 10f;
+
+    [Tooltip("If player moves, they'll get removed from their grabber's grip. Rotation doesn't affects it.")]
+    [SerializeField] private bool _moveToGetFree = false;
+
+    [Tooltip("How much does player need to move to get free? 1 = move the stick to the maximum, 0 = any movement. " +
+        "Keyboard inputs will always send the maximum movement.")]
+    [SerializeField] private float _getFreeThreshold = 0.5f;
+
+    [Header("--- Debug ---")]
+    [Tooltip("Will automatically follow the left hand of the next player that joins.")]
+    [SerializeField] private bool _debugMode;
+
+    [Tooltip("Exposed only for debug purposes.")]
+    [SerializeField] private HumanBodyBones _boneToFollow;
+
+    private Vector3 HipsPosition => _localPlayer.GetBonePosition(HumanBodyBones.Hips);
+
+    void Start()
+    {
+        _localPlayer = Networking.LocalPlayer;
+    }
+
+    private void FixedUpdate()
+    {
+        if (_grabber == null)
+            return;
+        var grabberPosition = _grabber.GetBonePosition(_boneToFollow);
+        var direction = grabberPosition - HipsPosition - _offset;
+        _localPlayer.SetVelocity(direction * _followBoneSpeed);
+    }
+
+    public override void OnPlayerJoined(VRCPlayerApi player)
+    {
+        if (!_debugMode)
+            return;
+        _grabber = player;
+        _boneToFollow = HumanBodyBones.LeftHand;
+    }
 
     [NetworkCallable]
     public void GetGrabbed(string playersGrabbed, int grabberID, int boneToFollow)
@@ -22,7 +62,6 @@ public class PickupTarget : UdonSharpBehaviour
         Debug.Log($"Received GetGrabbed network event: {playersGrabbed}, {grabberID}, {boneToFollow}");
         if (!VRCJson.TryDeserializeFromJson(playersGrabbed, out DataToken result))
             return;
-        Debug.Log("Deserialized player list");
         var playersGrabbedList = result.DataList;
         double localID = Networking.LocalPlayer.playerId;
 
@@ -32,17 +71,12 @@ public class PickupTarget : UdonSharpBehaviour
             return;
         }
 
-        Debug.Log("Player is in list");
-
-
         _grabber = VRCPlayerApi.GetPlayerById(grabberID);
         _boneToFollow = (HumanBodyBones)boneToFollow;
 
         // Set offsets
-        var bonePos = _grabber.GetBonePosition(_boneToFollow);
-        var boneRot = _grabber.GetBoneRotation(_boneToFollow);
-        _offset = bonePos - _localPlayer.GetBonePosition(HumanBodyBones.Hips);
-        _rotationOffset = Quaternion.Inverse(boneRot) * _localPlayer.GetBoneRotation(HumanBodyBones.Hips);
+        var grabberPosition = _grabber.GetBonePosition(_boneToFollow);
+        _offset = HipsPosition - grabberPosition;
         Debug.Log("Offsets done");
     }
 
@@ -60,19 +94,26 @@ public class PickupTarget : UdonSharpBehaviour
             _grabber = null;
     }
 
-    void Start()
+    #region Move to Get Free
+
+    /// <summary>
+    /// Defines if a movement intensity will break the player's being grabbed.
+    /// </summary>
+    private void ProcessMovement(float value)
     {
-        _localPlayer = Networking.LocalPlayer;
+        if (_moveToGetFree && _grabber != null && Mathf.Abs(value) > _getFreeThreshold)
+            _grabber = null;
     }
 
-    private void Update()
+    public override void InputMoveHorizontal(float value, UdonInputEventArgs args)
     {
-        if (_grabber == null)
-            return;
-        var bonePos = _grabber.GetBonePosition(_boneToFollow);
-        var boneRot = _grabber.GetBoneRotation(_boneToFollow);
-        var moveToward = Vector3.MoveTowards(transform.position, bonePos + _offset, 1f);
-        _localPlayer.SetVelocity(moveToward);
-        //_localPlayer.TeleportTo(bonePos + _offset, boneRot * _rotationOffset);
+        ProcessMovement(value);
     }
+
+    public override void InputMoveVertical(float value, UdonInputEventArgs args)
+    {
+        ProcessMovement(value);
+    }
+
+    #endregion
 }

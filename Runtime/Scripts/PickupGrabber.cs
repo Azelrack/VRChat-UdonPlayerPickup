@@ -11,16 +11,30 @@ using VRC.Udon.Common.Interfaces;
 [RequireComponent(typeof(SphereCollider))]
 public class PickupGrabber : UdonSharpBehaviour
 {
+    [Header("--- Grab Side and Bone ---")]
+    [Tooltip("Hand that will trigger the command.")]
+    [SerializeField] private HandType _handType;
+
+    [Tooltip("Bone to attach the grabbed player to.")]
+    [SerializeField] private HumanBodyBones _boneToFollow;
+
+    [Header("--- Double Press Setup ---")]
+    [Tooltip("Grab will be only triggered with a double tap.")]
+    [SerializeField] private bool _triggerOnDoublePress = false;
+
+    [Tooltip("Speed in seconds at which players have to repeat the grab gesture to toggle the Trigger On Double Press option.")]
+    [SerializeField] private float _doublePressSpeed = 0.2f;
+
+    [Header("--- Other ---")]
     [Tooltip("Any player height beyond this value will trigger a resize of the SphereCollider.")]
     [SerializeField] private float _referenceSize = 1.7f;
-    [SerializeField] private HandType _handType;
-    [SerializeField] private HumanBodyBones _boneToFollow;
-    [SerializeField] private bool _reactToDoublePress = false;
+
+    [Tooltip("External dependency required to communicate grab events.")]
     [SerializeField] private PickupTarget _target;
 
     private bool _inputPressed = false;
     private DataList playersTouched = new DataList();
-    private float _lastTapTime = 0f;
+    private float _lastPressTime = 0f;
     private Vector3 _baseScale;
 
     private void Update()
@@ -43,54 +57,43 @@ public class PickupGrabber : UdonSharpBehaviour
     public override void OnPlayerTriggerEnter(VRCPlayerApi player)
     {
         if (!_inputPressed && player != Networking.LocalPlayer)
-        {
             playersTouched.Add(player.playerId);
-            Debug.Log($"Added player {player} to grab");
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        Debug.Log($"Detected collision with {other}");
-
     }
 
     public override void OnPlayerTriggerExit(VRCPlayerApi player)
     {
         if (!_inputPressed)
-        {
             playersTouched.Remove(player.playerId);
-            Debug.Log($"Removed player {player} from grab");
-        }
     }
 
     public override void InputGrab(bool value, UdonInputEventArgs args)
     {
-        Debug.Log("GrabDetected");
         if (value && args.handType == _handType)
         {
-            Debug.Log("Hand Valid");
-            if (_reactToDoublePress)
+            if (_triggerOnDoublePress)
             {
-                if (_lastTapTime <= 0f)
-                    _lastTapTime = Time.time;
-                else if (_lastTapTime - Time.time < 0.2f)
+                if (_lastPressTime <= 0f)
+                    _lastPressTime = Time.time;
+                else if (_lastPressTime - Time.time < _doublePressSpeed)
                 {
-                    GrabPeople();
                     Debug.Log("Double Press");
+                    GrabPeople();
+                    _inputPressed = true;
                 }
             }
             else
             {
                 Debug.Log("Single Press");
                 GrabPeople();
+                _inputPressed = true;
             }
         }
         else if (!value)
         {
             Debug.Log("Release press");
             ReleasePeople();
-            _lastTapTime = 0f;
+            _lastPressTime = 0f;
+            _inputPressed = false;
         }
     }
 
@@ -98,8 +101,6 @@ public class PickupGrabber : UdonSharpBehaviour
     {
         if (!VRCJson.TrySerializeToJson(playersTouched, JsonExportType.Minify, out DataToken playersTouchedJson))
             return;
-        Debug.Log("Sending Network Event");
-
         _target.SendCustomNetworkEvent(
             NetworkEventTarget.Others,
             nameof(_target.GetGrabbed),
@@ -113,8 +114,6 @@ public class PickupGrabber : UdonSharpBehaviour
     {
         if (!VRCJson.TrySerializeToJson(playersTouched, JsonExportType.Minify, out DataToken playersTouchedJson))
             return;
-        Debug.Log("Sending Network Event");
-
         _target.SendCustomNetworkEvent(
             NetworkEventTarget.Others,
             nameof(_target.GetReleased),
