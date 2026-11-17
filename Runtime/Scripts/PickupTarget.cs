@@ -19,14 +19,17 @@ public class PickupTarget : UdonSharpBehaviour
     [SerializeField] private float _followBoneSpeed = 10f;
 
     [Tooltip("If player moves, they'll get removed from their grabber's grip. Rotation doesn't affects it.")]
-    [SerializeField] private bool _moveToGetFree = false;
+    [SerializeField] private bool _moveToGetFree = true;
 
     [Tooltip("How much does player need to move to get free? 1 = move the stick to the maximum, 0 = any movement. " +
         "Keyboard inputs will always send the maximum movement.")]
     [SerializeField] private float _getFreeThreshold = 0.5f;
 
+    [Tooltip("Allows players to grab someone that is already grabbed.")]
+    [SerializeField] private bool _allowStealingFromGrab = true;
+
     [Header("--- Debug ---")]
-    [Tooltip("Will automatically follow the left hand of the next player that joins.")]
+    [Tooltip("Will automatically follow the current BoneToFollow of the next player that joins.")]
     [SerializeField] private bool _debugMode;
 
     [Tooltip("Exposed only for debug purposes.")]
@@ -60,8 +63,9 @@ public class PickupTarget : UdonSharpBehaviour
     public void GetGrabbed(string playersGrabbed, int grabberID, int boneToFollow)
     {
         Debug.Log($"Received GetGrabbed network event: {playersGrabbed}, {grabberID}, {boneToFollow}");
-        if (!VRCJson.TryDeserializeFromJson(playersGrabbed, out DataToken result))
+        if (!_allowStealingFromGrab || !VRCJson.TryDeserializeFromJson(playersGrabbed, out DataToken result))
             return;
+
         var playersGrabbedList = result.DataList;
         double localID = Networking.LocalPlayer.playerId;
 
