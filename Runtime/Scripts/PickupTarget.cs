@@ -80,7 +80,7 @@ public class PickupTarget : UdonSharpBehaviour
 
         // Set offsets
         var grabberPosition = _grabber.GetBonePosition(_boneToFollow);
-        _offset = HipsPosition - grabberPosition;
+        _offset = grabberPosition - HipsPosition;
         Debug.Log("Offsets done");
     }
 
