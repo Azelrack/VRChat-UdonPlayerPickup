@@ -32,8 +32,16 @@ public class PickupGrabber : UdonSharpBehaviour
     [Tooltip("External dependency required to communicate grab events.")]
     [SerializeField] private PickupTarget _target;
 
-    private bool _inputPressed = false;
-    private DataList playersTouched = new DataList();
+    /// <summary>
+    /// Players currently being hit by the collider.
+    /// </summary>
+    private DataList _playersInContact = new DataList();
+
+    /// <summary>
+    /// Players currently being grabbed.
+    /// </summary>
+    private DataList _playersInGrab = new DataList();
+
     private float _lastPressTime = 0f;
     private Vector3 _baseScale;
 
@@ -56,14 +64,14 @@ public class PickupGrabber : UdonSharpBehaviour
 
     public override void OnPlayerTriggerEnter(VRCPlayerApi player)
     {
-        if (!_inputPressed && player != Networking.LocalPlayer)
-            playersTouched.Add(player.playerId);
+        if (player != Networking.LocalPlayer)
+            _playersInContact.Add(player.playerId);
     }
 
     public override void OnPlayerTriggerExit(VRCPlayerApi player)
     {
-        if (!_inputPressed)
-            playersTouched.Remove(player.playerId);
+        if (player != Networking.LocalPlayer)
+            _playersInContact.Remove(player.playerId);
     }
 
     public override void InputGrab(bool value, UdonInputEventArgs args)
@@ -76,49 +84,50 @@ public class PickupGrabber : UdonSharpBehaviour
                     _lastPressTime = Time.time;
                 else if (_lastPressTime - Time.time < _doublePressSpeed)
                 {
-                    Debug.Log("Double Press");
-                    GrabPeople();
-                    _inputPressed = true;
+                    Debug.Log("Grab Double Press");
+                    GrabPlayers();
                 }
             }
             else
             {
-                Debug.Log("Single Press");
-                GrabPeople();
-                _inputPressed = true;
+                Debug.Log("Grab Single Press");
+                GrabPlayers();
             }
         }
         else if (!value)
         {
-            Debug.Log("Release press");
-            ReleasePeople();
+            Debug.Log("Grab Release press");
+            ReleasePlayers();
             _lastPressTime = 0f;
-            _inputPressed = false;
         }
     }
 
-    private void GrabPeople()
+    private void GrabPlayers()
     {
-        if (!VRCJson.TrySerializeToJson(playersTouched, JsonExportType.Minify, out DataToken playersTouchedJson))
+        _playersInGrab = _playersInContact.ShallowClone();
+        if (!VRCJson.TrySerializeToJson(_playersInGrab, JsonExportType.Minify, out DataToken playersGrabbedJson))
             return;
+        Debug.Log("Send Grab Event");
         _target.SendCustomNetworkEvent(
             NetworkEventTarget.Others,
             nameof(_target.GetGrabbed),
-            playersTouchedJson.String,
+            playersGrabbedJson.String,
             Networking.LocalPlayer.playerId,
             (int)_boneToFollow
         );
     }
 
-    private void ReleasePeople()
+    private void ReleasePlayers()
     {
-        if (!VRCJson.TrySerializeToJson(playersTouched, JsonExportType.Minify, out DataToken playersTouchedJson))
+        if (!VRCJson.TrySerializeToJson(_playersInGrab, JsonExportType.Minify, out DataToken playersGrabbedJson))
             return;
+        Debug.Log("Send Release Grab Event");
         _target.SendCustomNetworkEvent(
             NetworkEventTarget.Others,
             nameof(_target.GetReleased),
-            playersTouchedJson.String,
-            Networking.LocalPlayer.playerId
+            playersGrabbedJson.String,
+            Networking.LocalPlayer.playerId,
         );
+        _playersInGrab.Clear();
     }
 }
