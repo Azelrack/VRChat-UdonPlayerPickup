@@ -64,6 +64,7 @@ MonoBehaviour:
   _referenceSize: 1.7
   _target: {fileID: 0}
   _velocityTracker: {fileID: 5575791513741056390}
+  _debugLogs: 0
 --- !u!114 &5575791513741056390
 MonoBehaviour:
   m_ObjectHideFlags: 0

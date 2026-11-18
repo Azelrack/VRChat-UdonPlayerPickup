@@ -55,12 +55,13 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 6272346098512102882}
-  _offset: {x: 0, y: 1, z: 0}
-  _followBoneSpeed: 10
-  _moveToGetFree: 0
+  _offset: {x: 0, y: 0, z: 0}
+  _followBoneSpeed: 20
+  _moveToGetFree: 1
   _getFreeThreshold: 0.5
   _allowStealingFromGrab: 1
-  _debugMode: 1
+  _debugMode: 0
+  _debugLogs: 0
   _boneToFollow: 17
 --- !u!114 &6272346098512102882
 MonoBehaviour:

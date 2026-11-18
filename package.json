@@ -1,0 +1,28 @@
+{
+  "name": "com.azelrack.vrchat-udon-player-pickup",
+  "version": "0.1.0",
+  "displayName": "VRChat Udon Player Pickup",
+  "description": "Scripts and prefab allowing players to pickup each others, with a extra options and features!",
+  "unity": "2022.3",
+  "unityRelease": "22f1",
+  "documentationUrl": "https://github.com/Azelrack/VRChat-UdonPlayerPickup",
+  "changelogUrl": "https://github.com/Azelrack/VRChat-UdonPlayerPickup/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/Azelrack/VRChat-UdonPlayerPickup/blob/main/LICENSE",
+  "dependencies": {
+    "com.vrchat.base": "3.9.0",
+    "com.vrchat.worlds": "3.9.0",
+    "com.vrchat.core.vpm-resolver": "0.1.29",
+    "com.unity.textmeshpro": "3.0.6"
+ },
+ "keywords": [
+    "Script",
+    "Prefab",
+    "Pickup",
+    "System"
+  ],
+  "author": {
+    "name": "Azelrack",
+    "email": "azelrack@gmail.com",
+    "url": "https://github.com/Azelrack"
+  }
+}

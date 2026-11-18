@@ -18,7 +18,7 @@ public class PickupTarget : UdonSharpBehaviour
 
     [Header("--- Grab Settings ---")]
     [Tooltip("Speed at which grabbed player will move toward his grabber's limb.")]
-    [SerializeField] private float _followBoneSpeed = 10f;
+    [SerializeField] private float _followBoneSpeed = 20f;
 
     [Tooltip("If player moves, they'll get removed from their grabber's grip. Rotation doesn't affects it.")]
     [SerializeField] private bool _moveToGetFree = true;
