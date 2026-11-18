@@ -1,7 +1,7 @@
 ﻿
-using BestHTTP.SecureProtocol.Org.BouncyCastle.Asn1.BC;
 using UdonSharp;
 using UnityEngine;
+using VRC.SDK3.Components;
 using VRC.SDK3.Data;
 using VRC.SDKBase;
 using VRC.Udon;
@@ -9,6 +9,7 @@ using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 
 [RequireComponent(typeof(SphereCollider))]
+[RequireComponent(typeof(VRCVelocityTracker))]
 public class PickupGrabber : UdonSharpBehaviour
 {
     [Header("--- Grab Side and Bone ---")]
@@ -32,10 +33,13 @@ public class PickupGrabber : UdonSharpBehaviour
     [Tooltip("External dependency required to communicate grab events.")]
     [SerializeField] private PickupTarget _target;
 
+    [SerializeField] private VRCVelocityTracker _velocityTracker;
+
+
     /// <summary>
     /// Players currently being hit by the collider.
     /// </summary>
-    private DataList _playersInContact = new DataList();
+    private readonly DataList _playersInContact = new DataList();
 
     /// <summary>
     /// Players currently being grabbed.
@@ -127,7 +131,9 @@ public class PickupGrabber : UdonSharpBehaviour
             nameof(_target.GetReleased),
             playersGrabbedJson.String,
             Networking.LocalPlayer.playerId,
+            transform.position,
+            _velocityTracker.GetLinearVelocity()
         );
         _playersInGrab.Clear();
-    }
+        Debug.Log($"Release Grab Event has been sent for {playersGrabbedJson.String}");
 }

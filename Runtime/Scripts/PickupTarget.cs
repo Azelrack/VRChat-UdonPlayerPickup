@@ -12,6 +12,9 @@ public class PickupTarget : UdonSharpBehaviour
 {
     private VRCPlayerApi _grabber;
     private VRCPlayerApi _localPlayer;
+    private bool _isThrown = false;
+    private Vector3 _lastPos;
+    private Vector3 _releaseVelocity;
     [SerializeField] private Vector3 _offset;
 
     [Header("--- Grab Settings ---")]
@@ -44,11 +47,18 @@ public class PickupTarget : UdonSharpBehaviour
 
     private void FixedUpdate()
     {
-        if (_grabber == null)
-            return;
-        var grabberPosition = _grabber.GetBonePosition(_boneToFollow);
-        var direction = grabberPosition - HipsPosition - _offset;
-        _localPlayer.SetVelocity(direction * _followBoneSpeed);
+        if (_grabber != null)
+        {
+            var grabberPosition = _grabber.GetBonePosition(_boneToFollow);
+            var direction = grabberPosition - HipsPosition - _offset;
+            _localPlayer.SetVelocity(_followBoneSpeed * direction);
+        }
+        else if (_isThrown)
+        {
+            _localPlayer.SetVelocity(_releaseVelocity);
+            _isThrown = false;
+            Debug.Log("Grab released and player is now being thrown.");
+        }
     }
 
     public override void OnPlayerJoined(VRCPlayerApi player)
@@ -85,17 +95,25 @@ public class PickupTarget : UdonSharpBehaviour
     }
 
     [NetworkCallable]
-    public void GetReleased(string playersToRelease, int grabberID)
+    public void GetReleased(string playersToRelease, int grabberID, Vector3 lastPos, Vector3 releaseVelocity)
     {
+        Debug.Log($"Grab release received for {_localPlayer.playerId}");
+
         if (!VRCJson.TryDeserializeFromJson(playersToRelease, out DataToken result))
             return;
-        var releaseList = result.DataList;
-        double localID = Networking.LocalPlayer.playerId;
+        Debug.Log($"Grab release {_localPlayer.playerId} deserialized List");
 
         // As a player could be stolen by another from the initial grabber,
         // we check the current grabber matches the one sending release event
-        if (_grabber != null && releaseList.Contains(localID) && _grabber.playerId == grabberID)
+        double localID = _localPlayer.playerId;
+        if (_grabber != null && result.DataList.Contains(localID) && _grabber.playerId == grabberID)
+        {
             _grabber = null;
+            _isThrown = true;
+            _lastPos = lastPos;
+            _releaseVelocity = releaseVelocity * 2; // Exagerate a little bit the throw force
+            Debug.Log($"Grab released {_localPlayer.playerId}, applying release velocity: {_releaseVelocity} toward coordinates: {lastPos}");
+        }
     }
 
     #region Move to Get Free
