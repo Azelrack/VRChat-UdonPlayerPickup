@@ -107,12 +107,12 @@ public class PickupTarget : UdonSharpBehaviour
     }
 
     [NetworkCallable]
-    public void GetReleased(string playersToRelease, int grabberID, Vector3 lastPos, Vector3 releaseVelocity)
+    public void GetReleased(string playersToRelease, int grabberID, Vector3 releaseVelocity)
     {
         if (_grabber == null || grabberID != _grabber.playerId)
             return;
 
-        TryPublishDebug($"Grab release received from {grabberID}");
+        TryPublishDebug($"Grab release received from #{grabberID}");
 
         if (!VRCJson.TryDeserializeFromJson(playersToRelease, out DataToken result))
         {
@@ -127,10 +127,10 @@ public class PickupTarget : UdonSharpBehaviour
             _grabber = null;
             _isThrown = true;
             _releaseVelocity = releaseVelocity * 2; // Exagerate a little bit the throw force
-            TryPublishDebug($"{grabberID} released player from grab, applying release velocity: {_releaseVelocity} toward coordinates: {lastPos}");
+            TryPublishDebug($"#{grabberID} released player from grab, applying release velocity: {_releaseVelocity}");
         }
         else
-            TryPublishDebug("Something went wrong and player did not get released");
+            TryPublishDebug($"Player did not get released by grabber #{grabberID}, they were not in release list");
     }
 
     #region Move to Get Free

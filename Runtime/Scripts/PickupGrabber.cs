@@ -137,7 +137,6 @@ public class PickupGrabber : UdonSharpBehaviour
             nameof(_target.GetReleased),
             playersGrabbedJson.String,
             Networking.LocalPlayer.playerId,
-            transform.position,
             _velocityTracker.GetLinearVelocity()
         );
         _playersInGrab.Clear();
