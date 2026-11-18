@@ -5,7 +5,7 @@ Current state of the repository is under development, some things may be broken.
 
 # How to use ?
 Drop the PlayerPickupHandsFeet Prefab in your scene, or the PlayerPickupHandsOnly if you don't want to allow people to pickup player with their feet.
-Use the grab gesture to pickup a pl
+Use the grab gesture to pickup a player, double grab to pick them up with your feet instead, if feet grabbers are installed on world.
 
 # Planned features
 
@@ -20,7 +20,6 @@ Use the grab gesture to pickup a pl
 
 ## To Do
 
-- [ ] Release players from one grabber instead of all at the same time
 - [ ] Option to restrict grab relative to size
 - [ ] Consent to be grabbed
 - [ ] Consent to grab
