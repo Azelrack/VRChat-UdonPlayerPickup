@@ -11,10 +11,9 @@ using VRC.Udon.Common;
 public class PickupTarget : UdonSharpBehaviour
 {
     private VRCPlayerApi _grabber;
-    private VRCPlayerApi _localPlayer;
     private bool _isThrown = false;
-    private Vector3 _lastPos;
     private Vector3 _releaseVelocity;
+
     [SerializeField] private Vector3 _offset;
 
     [Header("--- Grab Settings ---")]
@@ -33,55 +32,67 @@ public class PickupTarget : UdonSharpBehaviour
 
     [Header("--- Debug ---")]
     [Tooltip("Will automatically follow the current BoneToFollow of the next player that joins.")]
-    [SerializeField] private bool _debugMode;
+    [SerializeField] private bool _debugMode = false;
+
+    [SerializeField] private bool _debugLogs = false;
 
     [Tooltip("Exposed only for debug purposes.")]
     [SerializeField] private HumanBodyBones _boneToFollow;
 
-    private Vector3 HipsPosition => _localPlayer.GetBonePosition(HumanBodyBones.Hips);
-
-    void Start()
-    {
-        _localPlayer = Networking.LocalPlayer;
-    }
+    private VRCPlayerApi LocalPlayer => Networking.LocalPlayer;
+    private Vector3 HipsPosition => LocalPlayer.GetBonePosition(HumanBodyBones.Hips);
+    private int LocalPlayerID => LocalPlayer.playerId;
 
     private void FixedUpdate()
     {
+        // Fixed velocity following the grabber's limb.
         if (_grabber != null)
         {
             var grabberPosition = _grabber.GetBonePosition(_boneToFollow);
             var direction = grabberPosition - HipsPosition - _offset;
-            _localPlayer.SetVelocity(_followBoneSpeed * direction);
+            LocalPlayer.SetVelocity(_followBoneSpeed * direction);
         }
+        // Boosted velocity when grabber releases the target
         else if (_isThrown)
         {
-            _localPlayer.SetVelocity(_releaseVelocity);
+            LocalPlayer.SetVelocity(_releaseVelocity);
             _isThrown = false;
-            Debug.Log("Grab released and player is now being thrown.");
+            TryPublishDebug("Grab released and player is now being thrown.");
         }
     }
 
     public override void OnPlayerJoined(VRCPlayerApi player)
     {
-        if (!_debugMode || player.isLocal)
-            return;
-        _grabber = player;
-        _boneToFollow = HumanBodyBones.LeftHand;
+        if (_debugMode && !player.isLocal)
+        {
+            _grabber = player;
+            _boneToFollow = HumanBodyBones.LeftHand;
+        }
+    }
+
+    private void TryPublishDebug(string message)
+    {
+        if (_debugLogs)
+            Debug.Log($"#{LocalPlayerID}: {message}");
     }
 
     [NetworkCallable]
     public void GetGrabbed(string playersGrabbed, int grabberID, int boneToFollow)
     {
-        Debug.Log($"Received GetGrabbed network event: {playersGrabbed}, {grabberID}, {boneToFollow}");
+        TryPublishDebug($"Received GetGrabbed network event from #{grabberID}");
+
         if (!_allowStealingFromGrab || !VRCJson.TryDeserializeFromJson(playersGrabbed, out DataToken result))
+        {
+            TryPublishDebug($"Could not grab player.");
             return;
+        }
 
         var playersGrabbedList = result.DataList;
         double localID = Networking.LocalPlayer.playerId;
 
         if (playersGrabbedList.Count == 0 || !playersGrabbedList.Contains(localID))
         {
-            Debug.Log($"List was empty or did no contained player: elements in list {playersGrabbedList.Count}");
+            TryPublishDebug($"List was empty or did not contained player: {playersGrabbed}");
             return;
         }
 
@@ -91,29 +102,35 @@ public class PickupTarget : UdonSharpBehaviour
         // Set offsets
         var grabberPosition = _grabber.GetBonePosition(_boneToFollow);
         _offset = grabberPosition - HipsPosition;
-        Debug.Log("Offsets done");
+
+        TryPublishDebug($"Player is getting grabbed by {grabberID} among {playersGrabbed}, following {(HumanBodyBones)boneToFollow}");
     }
 
     [NetworkCallable]
     public void GetReleased(string playersToRelease, int grabberID, Vector3 lastPos, Vector3 releaseVelocity)
     {
-        Debug.Log($"Grab release received for {_localPlayer.playerId}");
+        if (_grabber == null || grabberID != _grabber.playerId)
+            return;
+
+        TryPublishDebug($"Grab release received from {grabberID}");
 
         if (!VRCJson.TryDeserializeFromJson(playersToRelease, out DataToken result))
+        {
+            TryPublishDebug($"Release could not get deserialized: {playersToRelease}");
             return;
-        Debug.Log($"Grab release {_localPlayer.playerId} deserialized List");
+        }
 
         // As a player could be stolen by another from the initial grabber,
         // we check the current grabber matches the one sending release event
-        double localID = _localPlayer.playerId;
-        if (_grabber != null && result.DataList.Contains(localID) && _grabber.playerId == grabberID)
+        if (result.DataList.Contains((double)LocalPlayer.playerId))
         {
             _grabber = null;
             _isThrown = true;
-            _lastPos = lastPos;
             _releaseVelocity = releaseVelocity * 2; // Exagerate a little bit the throw force
-            Debug.Log($"Grab released {_localPlayer.playerId}, applying release velocity: {_releaseVelocity} toward coordinates: {lastPos}");
+            TryPublishDebug($"{grabberID} released player from grab, applying release velocity: {_releaseVelocity} toward coordinates: {lastPos}");
         }
+        else
+            TryPublishDebug("Something went wrong and player did not get released");
     }
 
     #region Move to Get Free
@@ -124,7 +141,10 @@ public class PickupTarget : UdonSharpBehaviour
     private void ProcessMovement(float value)
     {
         if (_moveToGetFree && _grabber != null && Mathf.Abs(value) > _getFreeThreshold)
+        {
+            TryPublishDebug($"Player got out of grab themselves.");
             _grabber = null;
+        }
     }
 
     public override void InputMoveHorizontal(float value, UdonInputEventArgs args)

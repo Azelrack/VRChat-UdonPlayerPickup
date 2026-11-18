@@ -35,6 +35,7 @@ public class PickupGrabber : UdonSharpBehaviour
 
     [SerializeField] private VRCVelocityTracker _velocityTracker;
 
+    [SerializeField] private bool _debugLogs;
 
     /// <summary>
     /// Players currently being hit by the collider.
@@ -88,30 +89,35 @@ public class PickupGrabber : UdonSharpBehaviour
                     _lastPressTime = Time.time;
                 else if (_lastPressTime - Time.time < _doublePressSpeed)
                 {
-                    Debug.Log("Grab Double Press");
+                    TryPublishDebug("Grab Double Press");
                     GrabPlayers();
                 }
             }
             else
             {
-                Debug.Log("Grab Single Press");
+                TryPublishDebug("Grab Single Press");
                 GrabPlayers();
             }
         }
         else if (!value)
         {
-            Debug.Log("Grab Release press");
+            TryPublishDebug("Grab Release press");
             ReleasePlayers();
             _lastPressTime = 0f;
         }
     }
 
+    private void TryPublishDebug(string message)
+    {
+        if (_debugLogs)
+            Debug.Log($"#{Networking.LocalPlayer.playerId}: {message}");
+    }
+
     private void GrabPlayers()
     {
-        _playersInGrab = _playersInContact.ShallowClone();
+        _playersInGrab = _playersInContact.DeepClone();
         if (!VRCJson.TrySerializeToJson(_playersInGrab, JsonExportType.Minify, out DataToken playersGrabbedJson))
             return;
-        Debug.Log("Send Grab Event");
         _target.SendCustomNetworkEvent(
             NetworkEventTarget.Others,
             nameof(_target.GetGrabbed),
@@ -119,13 +125,13 @@ public class PickupGrabber : UdonSharpBehaviour
             Networking.LocalPlayer.playerId,
             (int)_boneToFollow
         );
+        TryPublishDebug($"Sent Grab Event for {playersGrabbedJson.String}");
     }
 
     private void ReleasePlayers()
     {
         if (!VRCJson.TrySerializeToJson(_playersInGrab, JsonExportType.Minify, out DataToken playersGrabbedJson))
             return;
-        Debug.Log("Send Release Grab Event");
         _target.SendCustomNetworkEvent(
             NetworkEventTarget.Others,
             nameof(_target.GetReleased),
@@ -135,5 +141,6 @@ public class PickupGrabber : UdonSharpBehaviour
             _velocityTracker.GetLinearVelocity()
         );
         _playersInGrab.Clear();
-        Debug.Log($"Release Grab Event has been sent for {playersGrabbedJson.String}");
+        TryPublishDebug($"Sent Release Grab Event for {playersGrabbedJson.String}");
+    }
 }
