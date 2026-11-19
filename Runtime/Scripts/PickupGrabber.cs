@@ -79,6 +79,13 @@ public class PickupGrabber : UdonSharpBehaviour
             _playersInContact.Remove(player.playerId);
     }
 
+    public override void OnPlayerLeft(VRCPlayerApi player)
+    {
+        // OnPlayerTriggerExit does not detects players who left...
+        if (_playersInContact.Contains(player.playerId))
+            _playersInContact.Remove(player.playerId);
+    }
+
     public override void InputGrab(bool value, UdonInputEventArgs args)
     {
         if (value && args.handType == _handType)
