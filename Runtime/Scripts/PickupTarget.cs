@@ -77,60 +77,30 @@ public class PickupTarget : UdonSharpBehaviour
     }
 
     [NetworkCallable]
-    public void GetGrabbed(string playersGrabbed, int grabberID, int boneToFollow)
+    public void GetGrabbed(int playerGrabbed, int grabberID, int boneToFollow, Vector3 offset)
     {
-        TryPublishDebug($"Received GetGrabbed network event from #{grabberID}");
-
-        if (!_allowStealingFromGrab || !VRCJson.TryDeserializeFromJson(playersGrabbed, out DataToken result))
-        {
-            TryPublishDebug($"Could not grab player.");
+        if (playerGrabbed != Networking.LocalPlayer.playerId || !_allowStealingFromGrab)
             return;
-        }
-
-        var playersGrabbedList = result.DataList;
-        double localID = Networking.LocalPlayer.playerId;
-
-        if (playersGrabbedList.Count == 0 || !playersGrabbedList.Contains(localID))
-        {
-            TryPublishDebug($"List was empty or did not contained player: {playersGrabbed}");
-            return;
-        }
 
         _grabber = VRCPlayerApi.GetPlayerById(grabberID);
         _boneToFollow = (HumanBodyBones)boneToFollow;
+        _offset = offset;
 
-        // Set offsets
-        var grabberPosition = _grabber.GetBonePosition(_boneToFollow);
-        _offset = grabberPosition - HipsPosition;
-
-        TryPublishDebug($"Player is getting grabbed by {grabberID} among {playersGrabbed}, following {(HumanBodyBones)boneToFollow}");
+        TryPublishDebug($"Player is getting grabbed by #{grabberID}'s {(HumanBodyBones)boneToFollow}");
     }
 
     [NetworkCallable]
-    public void GetReleased(string playersToRelease, int grabberID, Vector3 releaseVelocity)
+    public void GetReleased(int playerToRelease, int grabberID, Vector3 releaseVelocity)
     {
-        if (_grabber == null || grabberID != _grabber.playerId)
+        // As a player could have been stolent from its initial grabber,
+        // it's important to check current _grabber matches as PickupGrabber is not aware of that.
+        if (playerToRelease != LocalPlayerID || _grabber == null || grabberID != _grabber.playerId)
             return;
 
-        TryPublishDebug($"Grab release received from #{grabberID}");
-
-        if (!VRCJson.TryDeserializeFromJson(playersToRelease, out DataToken result))
-        {
-            TryPublishDebug($"Release could not get deserialized: {playersToRelease}");
-            return;
-        }
-
-        // As a player could be stolen by another from the initial grabber,
-        // we check the current grabber matches the one sending release event
-        if (result.DataList.Contains((double)LocalPlayer.playerId))
-        {
-            _grabber = null;
-            _isThrown = true;
-            _releaseVelocity = releaseVelocity * 2; // Exagerate a little bit the throw force
-            TryPublishDebug($"#{grabberID} released player from grab, applying release velocity: {_releaseVelocity}");
-        }
-        else
-            TryPublishDebug($"Player did not get released by grabber #{grabberID}, they were not in release list");
+        _grabber = null;
+        _isThrown = true;
+        _releaseVelocity = releaseVelocity * 2; // Exagerate a little bit the throw force
+        TryPublishDebug($"#{grabberID} released player from grab, applying release velocity: {_releaseVelocity}");
     }
 
     #region Move to Get Free

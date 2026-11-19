@@ -50,6 +50,8 @@ public class PickupGrabber : UdonSharpBehaviour
     private float _lastPressTime = 0f;
     private Vector3 _baseScale;
 
+    private Vector3 BonePosition => Networking.LocalPlayer.GetBonePosition(_boneToFollow);
+
     private void Update()
     {
         var bonePos = Networking.LocalPlayer.GetBonePosition(_boneToFollow);
@@ -84,6 +86,10 @@ public class PickupGrabber : UdonSharpBehaviour
         // OnPlayerTriggerExit does not detects players who left...
         if (_playersInContact.Contains(player.playerId))
             _playersInContact.Remove(player.playerId);
+
+        // Not super important to empty this one, but it could save us network calls
+        if (_playersInGrab.Contains(player.playerId))
+            _playersInGrab.Remove(player.playerId);
     }
 
     public override void InputGrab(bool value, UdonInputEventArgs args)
@@ -120,33 +126,53 @@ public class PickupGrabber : UdonSharpBehaviour
             Debug.Log($"#{Networking.LocalPlayer.playerId}: {message}");
     }
 
+    /// <summary>
+    /// Calculates grabbed offset and sends network event for <see cref="PickupTarget"/>
+    /// to start to follow <see cref="_boneToFollow"/>.
+    /// </summary>
     private void GrabPlayers()
     {
-        _playersInGrab = _playersInContact.DeepClone();
-        if (!VRCJson.TrySerializeToJson(_playersInGrab, JsonExportType.Minify, out DataToken playersGrabbedJson))
-            return;
-        _target.SendCustomNetworkEvent(
-            NetworkEventTarget.Others,
-            nameof(_target.GetGrabbed),
-            playersGrabbedJson.String,
-            Networking.LocalPlayer.playerId,
-            (int)_boneToFollow
-        );
-        TryPublishDebug($"Sent Grab Event for {playersGrabbedJson.String}");
+        foreach (DataToken playerToken in _playersInContact.ToArray())
+        {
+            var playerToGrab = VRCPlayerApi.GetPlayerById(playerToken.Int);
+            if (!Utilities.IsValid(playerToGrab))
+                continue;
+
+            // Calculcate the offset right here to avoid adding latency on target side.
+            var offset =  BonePosition - playerToGrab.GetBonePosition(HumanBodyBones.Hips);
+
+            _target.SendCustomNetworkEvent(
+                NetworkEventTarget.Others,
+                nameof(_target.GetGrabbed),
+                playerToGrab.playerId,
+                Networking.LocalPlayer.playerId,
+                (int)_boneToFollow,
+                offset
+            );
+
+            _playersInGrab.Add(playerToken);
+            TryPublishDebug($"Sent Grab Event for #{playerToGrab.playerId}");
+        }
     }
 
+    /// <summary>
+    /// Sends release network event for each player accounted in grab.
+    /// </summary>
     private void ReleasePlayers()
     {
-        if (!VRCJson.TrySerializeToJson(_playersInGrab, JsonExportType.Minify, out DataToken playersGrabbedJson))
-            return;
-        _target.SendCustomNetworkEvent(
-            NetworkEventTarget.Others,
-            nameof(_target.GetReleased),
-            playersGrabbedJson.String,
-            Networking.LocalPlayer.playerId,
-            _velocityTracker.GetLinearVelocity()
-        );
+        var releaseVelocity = _velocityTracker.GetLinearVelocity();
+
+        foreach (DataToken playerToken in _playersInGrab.ToArray())
+        {
+            _target.SendCustomNetworkEvent(
+                NetworkEventTarget.Others,
+                nameof(_target.GetReleased),
+                playerToken.Int,
+                Networking.LocalPlayer.playerId,
+                releaseVelocity
+            );
+            TryPublishDebug($"Sent Release Grab Event for {playerToken.Int}");
+        }
         _playersInGrab.Clear();
-        TryPublishDebug($"Sent Release Grab Event for {playersGrabbedJson.String}");
     }
 }
