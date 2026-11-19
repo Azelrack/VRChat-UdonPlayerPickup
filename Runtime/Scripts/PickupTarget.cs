@@ -1,11 +1,8 @@
 ﻿
 using UdonSharp;
 using UnityEngine;
-using VRC.SDK3.Data;
-using VRC.SDK3.Persistence;
 using VRC.SDK3.UdonNetworkCalling;
 using VRC.SDKBase;
-using VRC.Udon;
 using VRC.Udon.Common;
 
 public class PickupTarget : UdonSharpBehaviour

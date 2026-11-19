@@ -4,7 +4,6 @@ using UnityEngine;
 using VRC.SDK3.Components;
 using VRC.SDK3.Data;
 using VRC.SDKBase;
-using VRC.Udon;
 using VRC.Udon.Common;
 using VRC.Udon.Common.Interfaces;
 

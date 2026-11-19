@@ -1,3 +1,7 @@
+# 0.2.1
+# Fix
+- Updated dependency to Common Tools to fix a missing assembly.
+
 # 0.2.0 - UI Toggles & fixes
 ## New
 - UI to control pickup system activation and consent to its various features.
