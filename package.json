@@ -9,12 +9,14 @@
   "changelogUrl": "https://github.com/Azelrack/VRChat-UdonPlayerPickup/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/Azelrack/VRChat-UdonPlayerPickup/blob/main/LICENSE",
   "dependencies": {
+    "com.unity.textmeshpro": "3.0.6"
+ },
+   "vpmDependencies" : {
     "com.vrchat.base": "3.10.6",
     "com.vrchat.worlds": "3.10.6",
     "com.vrchat.core.vpm-resolver": "0.1.29",
-    "com.unity.textmeshpro": "3.0.6",
     "com.azelrack.vrchat-udon-common-tools": "0.1.0"
- },
+  },
  "keywords": [
     "Script",
     "Prefab",
