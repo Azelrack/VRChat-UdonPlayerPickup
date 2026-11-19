@@ -1,7 +1,7 @@
 {
   "name": "com.azelrack.vrchat-udon-player-pickup",
-  "version": "0.1.0",
-  "displayName": "VRChat Udon Player Pickup",
+  "version": "0.2.0",
+  "displayName": "Udon Player Pickup",
   "description": "Scripts and prefab allowing players to pickup each others, with a extra options and features!",
   "unity": "2022.3",
   "unityRelease": "22f1",
@@ -12,7 +12,8 @@
     "com.vrchat.base": "3.10.6",
     "com.vrchat.worlds": "3.10.6",
     "com.vrchat.core.vpm-resolver": "0.1.29",
-    "com.unity.textmeshpro": "3.0.6"
+    "com.unity.textmeshpro": "3.0.6",
+    "com.azelrack.vrchat-udon-common-tools": "0.1.0"
  },
  "keywords": [
     "Script",
