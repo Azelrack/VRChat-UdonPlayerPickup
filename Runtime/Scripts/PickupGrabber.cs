@@ -12,6 +12,21 @@ using VRC.Udon.Common.Interfaces;
 [RequireComponent(typeof(VRCVelocityTracker))]
 public class PickupGrabber : UdonSharpBehaviour
 {
+    #region Fields
+
+    /// <summary>
+    /// Players currently being hit by the collider.
+    /// </summary>
+    private readonly DataList _playersInContact = new DataList();
+
+    /// <summary>
+    /// Players currently being grabbed.
+    /// </summary>
+    private DataList _playersInGrab = new DataList();
+
+    private float _lastPressTime = 0f;
+    private Vector3 _baseScale;
+
     [Header("--- Grab Side and Bone ---")]
     [Tooltip("Hand that will trigger the command.")]
     [SerializeField] private HandType _handType;
@@ -37,20 +52,17 @@ public class PickupGrabber : UdonSharpBehaviour
 
     [SerializeField] private bool _debugLogs;
 
-    /// <summary>
-    /// Players currently being hit by the collider.
-    /// </summary>
-    private readonly DataList _playersInContact = new DataList();
+    #endregion
 
-    /// <summary>
-    /// Players currently being grabbed.
-    /// </summary>
-    private DataList _playersInGrab = new DataList();
+    #region Properties
 
-    private float _lastPressTime = 0f;
-    private Vector3 _baseScale;
-
+    public DataList PlayersInContact => _playersInContact;
+    public DataList PlayersInGrab => _playersInGrab;
     private Vector3 BonePosition => Networking.LocalPlayer.GetBonePosition(_boneToFollow);
+
+    #endregion
+
+    #region Unity Messages
 
     private void Update()
     {
@@ -62,6 +74,10 @@ public class PickupGrabber : UdonSharpBehaviour
     {
         _baseScale = transform.localScale;
     }
+
+    #endregion
+
+    #region Udon Methods
 
     public override void OnAvatarEyeHeightChanged(VRCPlayerApi player, float prevEyeHeightAsMeters)
     {
@@ -94,7 +110,9 @@ public class PickupGrabber : UdonSharpBehaviour
 
     public override void InputGrab(bool value, UdonInputEventArgs args)
     {
-        if (value && args.handType == _handType)
+        if (args.handType != _handType)
+            return;
+        if (value)
         {
             if (_triggerOnDoublePress)
             {
@@ -112,13 +130,15 @@ public class PickupGrabber : UdonSharpBehaviour
                 GrabPlayers();
             }
         }
-        else if (!value)
+        else
         {
             TryPublishDebug("Grab Release press");
             ReleasePlayers();
             _lastPressTime = 0f;
         }
     }
+
+    #endregion
 
     private void TryPublishDebug(string message)
     {

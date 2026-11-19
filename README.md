@@ -23,8 +23,7 @@ Current state of the repository is under development, an early release is availa
 - [ ] Allow world creator to chose between grab and use input to avoid collision with other features
 
 ## Known Issues
-- [ ] When having different players in different hands, releasing one hand will release everyone
-- [ ] Latency creates a bigger than necessary offset when grabbing up a player (need the offset to be calculated on grabber's side)
+- [ ] Throwing a player doesn't works well
 
 # Installation
 ## Requirements

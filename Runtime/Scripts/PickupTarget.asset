@@ -446,7 +446,7 @@ MonoBehaviour:
       Entry: 1
       Data: How much does player need to move to get free? 1 = move the stick to
         the maximum, 0 = any movement. Keyboard inputs will always send the maximum
-        movement.
+        value 1.
     - Name: 
       Entry: 8
       Data: 

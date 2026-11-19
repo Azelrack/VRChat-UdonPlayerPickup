@@ -10,9 +10,15 @@ using VRC.Udon.Common;
 
 public class PickupTarget : UdonSharpBehaviour
 {
+    # region Fields
+
     private VRCPlayerApi _grabber;
     private bool _isThrown = false;
     private Vector3 _releaseVelocity;
+
+    #endregion
+
+    #region Properties
 
     [SerializeField] private Vector3 _offset;
 
@@ -24,7 +30,7 @@ public class PickupTarget : UdonSharpBehaviour
     [SerializeField] private bool _moveToGetFree = true;
 
     [Tooltip("How much does player need to move to get free? 1 = move the stick to the maximum, 0 = any movement. " +
-        "Keyboard inputs will always send the maximum movement.")]
+        "Keyboard inputs will always send the maximum value 1.")]
     [SerializeField] private float _getFreeThreshold = 0.5f;
 
     [Tooltip("Allows players to grab someone that is already grabbed.")]
@@ -41,7 +47,10 @@ public class PickupTarget : UdonSharpBehaviour
 
     private VRCPlayerApi LocalPlayer => Networking.LocalPlayer;
     private Vector3 HipsPosition => LocalPlayer.GetBonePosition(HumanBodyBones.Hips);
-    private int LocalPlayerID => LocalPlayer.playerId;
+
+    #endregion
+
+    #region Unity Messages
 
     private void FixedUpdate()
     {
@@ -61,6 +70,10 @@ public class PickupTarget : UdonSharpBehaviour
         }
     }
 
+    #endregion
+
+    #region Udon Methods
+
     public override void OnPlayerJoined(VRCPlayerApi player)
     {
         if (_debugMode && !player.isLocal)
@@ -70,10 +83,22 @@ public class PickupTarget : UdonSharpBehaviour
         }
     }
 
+    public override void InputMoveHorizontal(float value, UdonInputEventArgs args)
+    {
+        TryToGetFree(value);
+    }
+
+    public override void InputMoveVertical(float value, UdonInputEventArgs args)
+    {
+        TryToGetFree(value);
+    }
+
+    #endregion
+
     private void TryPublishDebug(string message)
     {
         if (_debugLogs)
-            Debug.Log($"#{LocalPlayerID}: {message}");
+            Debug.Log($"#{LocalPlayer.playerId}: {message}");
     }
 
     [NetworkCallable]
@@ -94,7 +119,7 @@ public class PickupTarget : UdonSharpBehaviour
     {
         // As a player could have been stolent from its initial grabber,
         // it's important to check current _grabber matches as PickupGrabber is not aware of that.
-        if (playerToRelease != LocalPlayerID || _grabber == null || grabberID != _grabber.playerId)
+        if (playerToRelease != LocalPlayer.playerId || _grabber == null || grabberID != _grabber.playerId)
             return;
 
         _grabber = null;
@@ -108,23 +133,13 @@ public class PickupTarget : UdonSharpBehaviour
     /// <summary>
     /// Defines if a movement intensity will break the player's being grabbed.
     /// </summary>
-    private void ProcessMovement(float value)
+    private void TryToGetFree(float movementIntensity)
     {
-        if (_moveToGetFree && _grabber != null && Mathf.Abs(value) > _getFreeThreshold)
+        if (_moveToGetFree && _grabber != null && Mathf.Abs(movementIntensity) > _getFreeThreshold)
         {
             TryPublishDebug($"Player got out of grab themselves.");
             _grabber = null;
         }
-    }
-
-    public override void InputMoveHorizontal(float value, UdonInputEventArgs args)
-    {
-        ProcessMovement(value);
-    }
-
-    public override void InputMoveVertical(float value, UdonInputEventArgs args)
-    {
-        ProcessMovement(value);
     }
 
     #endregion
