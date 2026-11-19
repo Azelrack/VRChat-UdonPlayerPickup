@@ -1,4 +1,4 @@
-# [WIP] Udon Player Pickup
+# Udon Player Pickup
 Scripts and prefab to allow players to pickup each others, with a few extra options and features!
 
 Current state of the repository is under development, an early release is available, but a few quirks and bugs are to be expected!
