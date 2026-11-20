@@ -18,9 +18,11 @@ Current state of the repository is under development, an early release is availa
 
 ## To Do
 
+- [ ] Info UI presenting controls
 - [ ] Option to restrict grab relative to size
 - [ ] Make picked up players follow the grabber's limb rotation
 - [ ] Allow world creator to chose between grab and use input to avoid collision with other features
+- [ ] Attach grabbed player to a bone
 
 ## Known Issues
 - [ ] *Throwing a player doesn't works well
