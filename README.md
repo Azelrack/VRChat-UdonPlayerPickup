@@ -42,8 +42,11 @@ Current state of the repository is under development, an early release is availa
 And that's all, your pickup system is ready to use!
 
 # How to use ?
+## In VR
 Use the grab gesture of your controllers to pickup a player, double grab to pick them up with your feet instead, if feet grabbers are installed on world.
-Desktop players can use left and right mouse clicks.
+
+## In desltop
+Desktop players can use left and right mouse clicks, but since the pickup works based on your avatar's hand position, it won't work well, except maybe if you use webcam tracking with one hand and click on your mouse with the other hand (sorry but desktop pickup is not really a priority at the moment!).
 
 # Debug
 As only the local player can move himself, the pickup system relies on network events, **you cannot properly test it in the editor**, even with VRC's ClientSim.
