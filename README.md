@@ -45,7 +45,7 @@ And that's all, your pickup system is ready to use!
 ## In VR
 Use the grab gesture of your controllers to pickup a player, double grab to pick them up with your feet instead, if feet grabbers are installed on world.
 
-## In desltop
+## In desktop
 Desktop players can use left and right mouse clicks, but since the pickup works based on your avatar's hand position, it won't work well, except maybe if you use webcam tracking with one hand and click on your mouse with the other hand (sorry but desktop pickup is not really a priority at the moment!).
 
 # Debug
