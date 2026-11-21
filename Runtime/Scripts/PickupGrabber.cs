@@ -126,13 +126,13 @@ public class PickupGrabber : UdonSharpBehaviour
         {
             if (_triggerOnDoublePress)
             {
-                if (_lastPressTime <= 0f)
-                    _lastPressTime = Time.time;
-                else if (Time.time - _lastPressTime <= _doublePressSpeed)
+                if (Time.time - _lastPressTime <= _doublePressSpeed)
                 {
                     TryPublishDebug("Grab Double Press");
                     GrabPlayers();
                 }
+                else
+                    _lastPressTime = Time.time;
             }
             else
             {
@@ -144,7 +144,6 @@ public class PickupGrabber : UdonSharpBehaviour
         {
             TryPublishDebug("Grab Release Press");
             ReleasePlayers();
-            _lastPressTime = 0f;
         }
     }
 

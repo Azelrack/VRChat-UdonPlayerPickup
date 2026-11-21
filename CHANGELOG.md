@@ -5,12 +5,13 @@
 - Common config stored in one behavior.
 # Fix
 - Updating physics in FixedUpdate as it should.
-# Known bug
-- Foot pickup does not works
+- Double press and Foot pickup were not working.
+
 
 # 0.2.1
 # Fix
 - Updated dependency to Common Tools to fix a missing assembly.
+
 
 # 0.2.0 - UI Toggles & fixes
 ## New
