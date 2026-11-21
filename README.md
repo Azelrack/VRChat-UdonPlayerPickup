@@ -8,13 +8,14 @@ Current state of the repository is under development, an early release is availa
 ## Done
 
 - [X] Hand grab
-- [X] Feet grab
-- [X] Move to break grab
-- [X] Keep grab offset
-- [X] Steal players from grab
+- [X] *Feet grab
+- [X] Grabbed player can break free by moving
+- [X] Steal players from another's grab
 - [X] Consent to be grabbed
 - [X] Consent to grab
-- [X] *Throw players when releasing them
+- [X] Throw players when releasing them
+
+*Known issues
 
 ## To Do
 
@@ -23,13 +24,13 @@ Current state of the repository is under development, an early release is availa
 - [ ] Make picked up players follow the grabber's limb rotation
 - [ ] Allow world creator to chose between grab and use input to avoid collision with other features
 - [ ] Attach grabbed player to a bone
-
-## Known Issues
-- [ ] *Throwing a player doesn't works well
+- [ ] Make throwing players easier
+- [ ] Increase bone follow velocity depending on grabber's size
+- [ ] Increase throw force depending on grabber's size
 
 # Installation
 ## Requirements
-- Unity 2022.3.22f1
+- Unity 2022.3.22f1.
 - VRChat world SDK 3.10.6.
 
 ## Steps
@@ -37,7 +38,7 @@ Current state of the repository is under development, an early release is availa
    - Alternatively you can download the latest release and import the .unitypackage in your project, before jumping to step 3.
 2. In the "Manage Project" button on your world project, add the Udon Player Pickup package.
 3. Load your project and wait for the new packages to be installed.
-3. In Runtime -> Prefabs -> Drag N Drop Install drag and drop in your scene the full install or the no feet pickup variant.
+3. In Runtime -> Prefabs -> Drag N Drop Install -> drag and drop in your scene the Full Install or the no feet pickup variant.
 
 And that's all, your pickup system is ready to use!
 
@@ -51,4 +52,4 @@ Desktop players can use left and right mouse clicks, but since the pickup works 
 # Debug
 As only the local player can move himself, the pickup system relies on network events, **you cannot properly test it in the editor**, even with VRC's ClientSim.
 
-That means tesitng it will require using the Build & Test/Reload and VRC Quick launcher to have propper clients with their own local context.
+That means testing it will require using the Build & Test/Reload and VRC Quick launcher to have full clients with a local context.

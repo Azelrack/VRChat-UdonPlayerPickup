@@ -15,7 +15,7 @@
     "com.vrchat.base": "3.10.6",
     "com.vrchat.worlds": "3.10.6",
     "com.vrchat.core.vpm-resolver": "0.1.29",
-    "com.azelrack.vrchat-udon-common-tools": "0.1.1"
+    "com.azelrack.vrchat-udon-common-tools": "0.1.2"
   },
  "keywords": [
     "Script",

@@ -12,19 +12,20 @@ public class PickupTarget : UdonSharpBehaviour
     private VRCPlayerApi _grabber;
     private bool _isThrown = false;
     private Vector3 _releaseVelocity;
+    private Vector3 _offset;
 
     #endregion
 
     #region Properties
 
-    [SerializeField] private Vector3 _offset;
+    [SerializeField] private PickupCommonConfig _pickupCommonConfig;
 
     [Header("--- Grab Settings ---")]
     [Tooltip("Speed at which grabbed player will move toward his grabber's limb.")]
     [SerializeField] private float _followBoneSpeed = 20f;
 
     [Tooltip("If player moves, they'll get removed from their grabber's grip. Rotation doesn't affects it.")]
-    [SerializeField] private bool _moveToGetFree = true;
+    [SerializeField] private bool _allowMoveToGetFree = true;
 
     [Tooltip("How much does player need to move to get free? 1 = move the stick to the maximum, 0 = any movement. " +
         "Keyboard inputs will always send the maximum value 1.")]
@@ -36,8 +37,6 @@ public class PickupTarget : UdonSharpBehaviour
     [Header("--- Debug ---")]
     [Tooltip("Will automatically follow the current BoneToFollow of the next player that joins.")]
     [SerializeField] private bool _debugMode = false;
-
-    [SerializeField] private bool _debugLogs = false;
 
     [Tooltip("Exposed only for debug purposes.")]
     [SerializeField] private HumanBodyBones _boneToFollow;
@@ -94,7 +93,7 @@ public class PickupTarget : UdonSharpBehaviour
 
     private void TryPublishDebug(string message)
     {
-        if (_debugLogs)
+        if (_pickupCommonConfig.DebugLogs)
             Debug.Log($"#{LocalPlayer.playerId}: {message}");
     }
 
@@ -132,7 +131,7 @@ public class PickupTarget : UdonSharpBehaviour
     /// </summary>
     private void TryToGetFree(float movementIntensity)
     {
-        if (_moveToGetFree && _grabber != null && Mathf.Abs(movementIntensity) > _getFreeThreshold)
+        if (_allowMoveToGetFree && _grabber != null && Mathf.Abs(movementIntensity) > _getFreeThreshold)
         {
             TryPublishDebug($"Player got out of grab themselves.");
             _grabber = null;

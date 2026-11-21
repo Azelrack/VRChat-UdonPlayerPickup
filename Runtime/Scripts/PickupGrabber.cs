@@ -1,4 +1,4 @@
-﻿
+﻿using Newtonsoft.Json;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDK3.Components;
@@ -40,16 +40,13 @@ public class PickupGrabber : UdonSharpBehaviour
     [Tooltip("Speed in seconds at which players have to repeat the grab gesture to toggle the Trigger On Double Press option.")]
     [SerializeField] private float _doublePressSpeed = 0.2f;
 
-    [Header("--- Other ---")]
-    [Tooltip("Any player height beyond this value will trigger a resize of the SphereCollider.")]
-    [SerializeField] private float _referenceSize = 1.7f;
-
+    [Header("--- Dependencies ---")]
     [Tooltip("External dependency required to communicate grab events.")]
     [SerializeField] private PickupTarget _target;
 
     [SerializeField] private VRCVelocityTracker _velocityTracker;
 
-    [SerializeField] private bool _debugLogs;
+    [SerializeField] private PickupCommonConfig _pickupCommonConfig;
 
     #endregion
 
@@ -59,14 +56,28 @@ public class PickupGrabber : UdonSharpBehaviour
     public DataList PlayersInGrab => _playersInGrab;
     private Vector3 BonePosition => Networking.LocalPlayer.GetBonePosition(_boneToFollow);
 
+    /// <summary>
+    /// Requires the player trying to pickup another to be bigger.
+    /// </summary>
+    private bool SizeRestriction => _pickupCommonConfig.PickupSizeRestriction;
+
+    /// <summary>
+    /// How bigger a grabber needs to be for the Pickup Size Restriction to work? Default 1.4f = 40% bigger.
+    /// </summary>
+    private float SizeRestrictionDifference => _pickupCommonConfig.SizeRestrictionDifference;
+
+    /// <summary>
+    /// Any player height beyond this value will trigger a resize of the SphereCollider.
+    /// </summary>
+    private float ReferenceSize => _pickupCommonConfig.ReferenceSize;
+
     #endregion
 
     #region Unity Messages
 
-    private void Update()
+    private void FixedUpdate()
     {
-        var bonePos = Networking.LocalPlayer.GetBonePosition(_boneToFollow);
-        transform.position = bonePos;
+        transform.position = BonePosition;
     }
 
     void Start()
@@ -81,7 +92,7 @@ public class PickupGrabber : UdonSharpBehaviour
     public override void OnAvatarEyeHeightChanged(VRCPlayerApi player, float prevEyeHeightAsMeters)
     {
         base.OnAvatarEyeHeightChanged(player, prevEyeHeightAsMeters);
-        transform.localScale = _baseScale * (player.GetAvatarEyeHeightAsMeters() / _referenceSize);
+        transform.localScale = _baseScale * (player.GetAvatarEyeHeightAsMeters() / ReferenceSize);
     }
 
     public override void OnPlayerTriggerEnter(VRCPlayerApi player)
@@ -117,7 +128,7 @@ public class PickupGrabber : UdonSharpBehaviour
             {
                 if (_lastPressTime <= 0f)
                     _lastPressTime = Time.time;
-                else if (_lastPressTime - Time.time < _doublePressSpeed)
+                else if (Time.time - _lastPressTime <= _doublePressSpeed)
                 {
                     TryPublishDebug("Grab Double Press");
                     GrabPlayers();
@@ -131,7 +142,7 @@ public class PickupGrabber : UdonSharpBehaviour
         }
         else
         {
-            TryPublishDebug("Grab Release press");
+            TryPublishDebug("Grab Release Press");
             ReleasePlayers();
             _lastPressTime = 0f;
         }
@@ -141,7 +152,7 @@ public class PickupGrabber : UdonSharpBehaviour
 
     private void TryPublishDebug(string message)
     {
-        if (_debugLogs)
+        if (_pickupCommonConfig.DebugLogs)
             Debug.Log($"#{Networking.LocalPlayer.playerId}: {message}");
     }
 
@@ -156,6 +167,18 @@ public class PickupGrabber : UdonSharpBehaviour
             var playerToGrab = VRCPlayerApi.GetPlayerById(playerToken.Int);
             if (!Utilities.IsValid(playerToGrab))
                 continue;
+
+            // Compares size of grabber with
+            if (SizeRestriction)
+            {
+                var grabberSize = Networking.LocalPlayer.GetAvatarEyeHeightAsMeters();
+                var otherPlayerSize = playerToGrab.GetAvatarEyeHeightAsMeters();
+                if (grabberSize / otherPlayerSize <= SizeRestrictionDifference)
+                {
+                    TryPublishDebug($"Could not grab player #{playerToGrab.playerId}, not enough size difference : {grabberSize / otherPlayerSize}, required: {SizeRestrictionDifference}");
+                    continue;
+                }
+            }
 
             // Calculcate the offset right here to avoid adding latency on target side.
             var offset =  BonePosition - playerToGrab.GetBonePosition(HumanBodyBones.Hips);

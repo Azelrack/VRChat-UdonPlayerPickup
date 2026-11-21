@@ -1,3 +1,13 @@
+# Next Update
+# New
+- Restrict pickup to a minmum size difference (default: grabber needs to be 40% bigger than their target to grab them).
+# Change
+- Common config stored in one behavior.
+# Fix
+- Updating physics in FixedUpdate as it should.
+# Known bug
+- Foot pickup does not works
+
 # 0.2.1
 # Fix
 - Updated dependency to Common Tools to fix a missing assembly.
