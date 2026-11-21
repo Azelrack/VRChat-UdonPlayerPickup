@@ -1,6 +1,6 @@
-# Next Update
+# 0.3.0
 # New
-- Restrict pickup to a minmum size difference (default: grabber needs to be 40% bigger than their target to grab them).
+- Restrict pickup to a minimum size difference (default: grabber needs to be 40% bigger than their target to grab them).
 # Change
 - Common config stored in one behavior.
 # Fix

@@ -60,6 +60,9 @@ MonoBehaviour:
   _referenceSize: 1.7
   _pickupSizeRestriction: 1
   _sizeRestrictionDifference: 1.4
+  _allowMoveToGetFree: 1
+  _getFreeThreshold: 0.5
+  _allowStealingFromGrab: 1
   _debugLogs: 0
 --- !u!114 &1039365715785136024
 MonoBehaviour:

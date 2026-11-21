@@ -24,16 +24,6 @@ public class PickupTarget : UdonSharpBehaviour
     [Tooltip("Speed at which grabbed player will move toward his grabber's limb.")]
     [SerializeField] private float _followBoneSpeed = 20f;
 
-    [Tooltip("If player moves, they'll get removed from their grabber's grip. Rotation doesn't affects it.")]
-    [SerializeField] private bool _allowMoveToGetFree = true;
-
-    [Tooltip("How much does player need to move to get free? 1 = move the stick to the maximum, 0 = any movement. " +
-        "Keyboard inputs will always send the maximum value 1.")]
-    [SerializeField] private float _getFreeThreshold = 0.5f;
-
-    [Tooltip("Allows players to grab someone that is already grabbed.")]
-    [SerializeField] private bool _allowStealingFromGrab = true;
-
     [Header("--- Debug ---")]
     [Tooltip("Will automatically follow the current BoneToFollow of the next player that joins.")]
     [SerializeField] private bool _debugMode = false;
@@ -43,6 +33,9 @@ public class PickupTarget : UdonSharpBehaviour
 
     private VRCPlayerApi LocalPlayer => Networking.LocalPlayer;
     private Vector3 HipsPosition => LocalPlayer.GetBonePosition(HumanBodyBones.Hips);
+    private bool AllowMoveToGetFree => _pickupCommonConfig.AllowMoveToGetFree;
+    private float GetFreeThreshold => _pickupCommonConfig.GetFreeThreshold;
+    private bool AllowStealingFromGrab => _pickupCommonConfig.AllowStealingFromGrab;
 
     #endregion
 
@@ -100,7 +93,7 @@ public class PickupTarget : UdonSharpBehaviour
     [NetworkCallable]
     public void GetGrabbed(int playerGrabbed, int grabberID, int boneToFollow, Vector3 offset)
     {
-        if (playerGrabbed != Networking.LocalPlayer.playerId || !_allowStealingFromGrab)
+        if (playerGrabbed != Networking.LocalPlayer.playerId || !AllowStealingFromGrab)
             return;
 
         _grabber = VRCPlayerApi.GetPlayerById(grabberID);
@@ -131,7 +124,7 @@ public class PickupTarget : UdonSharpBehaviour
     /// </summary>
     private void TryToGetFree(float movementIntensity)
     {
-        if (_allowMoveToGetFree && _grabber != null && Mathf.Abs(movementIntensity) > _getFreeThreshold)
+        if (AllowMoveToGetFree && _grabber != null && Mathf.Abs(movementIntensity) > GetFreeThreshold)
         {
             TryPublishDebug($"Player got out of grab themselves.");
             _grabber = null;
