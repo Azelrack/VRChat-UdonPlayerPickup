@@ -1,9 +1,10 @@
-# 0.3.0
+# 0.3.0 - Grab size difference restriction and important fixes
 # New
 - Restrict pickup to a minimum size difference (default: grabber needs to be 40% bigger than their target to grab them).
 # Change
 - Common config stored in one behavior.
 # Fix
+- Grab contacts would resize to the size of the last player that changed size.
 - Updating physics in FixedUpdate as it should.
 - Double press and Foot pickup were not working.
 

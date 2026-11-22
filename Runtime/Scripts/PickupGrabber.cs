@@ -52,8 +52,6 @@ public class PickupGrabber : UdonSharpBehaviour
 
     #region Properties
 
-    public DataList PlayersInContact => _playersInContact;
-    public DataList PlayersInGrab => _playersInGrab;
     private Vector3 BonePosition => Networking.LocalPlayer.GetBonePosition(_boneToFollow);
 
     /// <summary>
@@ -91,19 +89,20 @@ public class PickupGrabber : UdonSharpBehaviour
 
     public override void OnAvatarEyeHeightChanged(VRCPlayerApi player, float prevEyeHeightAsMeters)
     {
-        base.OnAvatarEyeHeightChanged(player, prevEyeHeightAsMeters);
+        if (!player.isLocal)
+            return;
         transform.localScale = _baseScale * (player.GetAvatarEyeHeightAsMeters() / ReferenceSize);
     }
 
     public override void OnPlayerTriggerEnter(VRCPlayerApi player)
     {
-        if (player != Networking.LocalPlayer)
+        if (!player.isLocal)
             _playersInContact.Add(player.playerId);
     }
 
     public override void OnPlayerTriggerExit(VRCPlayerApi player)
     {
-        if (player != Networking.LocalPlayer)
+        if (!player.isLocal)
             _playersInContact.Remove(player.playerId);
     }
 

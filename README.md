@@ -8,25 +8,23 @@ Current state of the repository is under development, an early release is availa
 ## Done
 
 - [X] Hand grab
-- [X] *Feet grab
+- [X] Feet grab
 - [X] Grabbed player can break free by moving
 - [X] Steal players from another's grab
 - [X] Consent to be grabbed
 - [X] Consent to grab
 - [X] Throw players when releasing them
-
-*Known issues
+- [X] Editor option to restrict grab relative to size
 
 ## To Do
 
 - [ ] Info UI presenting controls
-- [ ] Option to restrict grab relative to size
-- [ ] Make picked up players follow the grabber's limb rotation
-- [ ] Allow world creator to chose between grab and use input to avoid collision with other features
-- [ ] Attach grabbed player to a bone
-- [ ] Make throwing players easier
 - [ ] Increase bone follow velocity depending on grabber's size
 - [ ] Increase throw force depending on grabber's size
+- [ ] Make picked up players follow the grabber's limb rotation
+- [ ] Allow world creator to chose between grab and use input to avoid collision with other features
+- [ ] Make throwing players easier
+- [ ] Attach grabbed player to a bone
 
 # Installation
 ## Requirements
