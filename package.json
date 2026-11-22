@@ -12,10 +12,10 @@
     "com.unity.textmeshpro": "3.0.6"
  },
    "vpmDependencies" : {
-    "com.vrchat.base": "3.10.6",
-    "com.vrchat.worlds": "3.10.6",
-    "com.vrchat.core.vpm-resolver": "0.1.29",
-    "com.azelrack.vrchat-udon-common-tools": "0.1.3"
+    "com.vrchat.base": ">=3.10.6",
+    "com.vrchat.worlds": ">=3.10.6",
+    "com.vrchat.core.vpm-resolver": ">=0.1.29",
+    "com.azelrack.vrchat-udon-common-tools": "^0.1.3"
   },
  "keywords": [
     "Script",
