@@ -25,6 +25,7 @@ Current state of the repository is under development, an early release is availa
 - [ ] Allow world creator to chose between grab and use input to avoid collision with other features
 - [ ] Make throwing players easier
 - [ ] Attach grabbed player to a bone
+- [ ] 日本語訳
 
 # Installation
 ## Requirements

@@ -1,4 +1,7 @@
 # Next Update
+## New
+- Temporary simple tutorial text in config prefab.
+- If Allow Move To Get Free is enabled, GetFreeThreshold will always work even if world creator enters a wrong value.
 ## Change
 - Disabling the system will get free of any grabber.
 ## Fix

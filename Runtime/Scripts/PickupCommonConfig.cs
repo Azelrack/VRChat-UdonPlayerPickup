@@ -30,6 +30,9 @@ public class PickupCommonConfig : UdonSharpBehaviour
     [Tooltip("Allows players to grab someone that is already grabbed.")]
     [SerializeField] private bool _allowStealingFromGrab = true;
 
+    [Tooltip("TextMesh Pro Text element to display your settings for the users.")]
+    [SerializeField] private TMPro.TextMeshProUGUI _settingsDisplay;
+
     [Header("--- Debug ---")]
     [SerializeField] private bool _debugLogs = false;
 
@@ -41,4 +44,22 @@ public class PickupCommonConfig : UdonSharpBehaviour
     public bool AllowStealingFromGrab => _allowStealingFromGrab;
     public bool DebugLogs => _debugLogs;
 
+    private void Start()
+    {
+        SetConfigTutorial();
+    }
+
+    public void SetConfigTutorial()
+    {
+        if (_settingsDisplay == null)
+            return;
+
+        string str = "\n";
+        if (PickupSizeRestriction)
+            str += $"- You need to be {(SizeRestrictionDifference - 1)*100}% bigger than a player to pick them up.\n";
+        if (AllowMoveToGetFree)
+            str += $"- You can get free from a grab by moving.\n";
+        _settingsDisplay.text += str;
+        Debug.Log($"Wrote text {str}");
+    }
 }

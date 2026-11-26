@@ -1,4 +1,5 @@
 ﻿
+using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDK3.UdonNetworkCalling;
@@ -34,7 +35,7 @@ public class PickupTarget : UdonSharpBehaviour
     private VRCPlayerApi LocalPlayer => Networking.LocalPlayer;
     private Vector3 HipsPosition => LocalPlayer.GetBonePosition(HumanBodyBones.Hips);
     private bool AllowMoveToGetFree => _pickupCommonConfig.AllowMoveToGetFree;
-    private float GetFreeThreshold => _pickupCommonConfig.GetFreeThreshold;
+    private float GetFreeThreshold => Math.Max(1, _pickupCommonConfig.GetFreeThreshold);
     private bool AllowStealingFromGrab => _pickupCommonConfig.AllowStealingFromGrab;
 
     #endregion
@@ -130,7 +131,7 @@ public class PickupTarget : UdonSharpBehaviour
     /// </summary>
     private void TryToGetFree(float movementIntensity)
     {
-        if (AllowMoveToGetFree && _grabber != null && Mathf.Abs(movementIntensity) > GetFreeThreshold)
+        if (AllowMoveToGetFree && _grabber != null && Mathf.Abs(movementIntensity) >= GetFreeThreshold)
         {
             TryPublishDebug($"Player got out of grab themselves.");
             _grabber = null;
