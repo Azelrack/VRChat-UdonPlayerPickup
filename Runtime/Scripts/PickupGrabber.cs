@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using UdonSharp;
+﻿using UdonSharp;
 using UnityEngine;
 using VRC.SDK3.Components;
 using VRC.SDK3.Data;
@@ -78,9 +77,22 @@ public class PickupGrabber : UdonSharpBehaviour
         transform.position = BonePosition;
     }
 
-    void Start()
+    private void Start()
     {
         _baseScale = transform.localScale;
+    }
+
+    private void OnEnable()
+    {
+        TryPublishDebug($"Player enable {_boneToFollow} grab.");
+    }
+
+    private void OnDisable()
+    {
+        ReleasePlayers();
+        _playersInContact.Clear();
+        _playersInGrab.Clear();
+        TryPublishDebug($"Player disabled {_boneToFollow} grab.");
     }
 
     #endregion

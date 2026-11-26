@@ -59,6 +59,12 @@ public class PickupTarget : UdonSharpBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        _grabber = null;
+        _isThrown = false;
+    }
+
     #endregion
 
     #region Udon Methods
