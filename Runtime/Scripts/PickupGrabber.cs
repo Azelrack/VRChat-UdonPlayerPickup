@@ -24,6 +24,7 @@ public class PickupGrabber : UdonSharpBehaviour
 
     private float _lastPressTime = 0f;
     private Vector3 _baseScale;
+    private bool _isUserInVR;
 
     [Header("--- Grab Side and Bone ---")]
     [Tooltip("Hand that will trigger the command.")]
@@ -72,7 +73,7 @@ public class PickupGrabber : UdonSharpBehaviour
 
     #region Unity Messages
 
-    private void FixedUpdate()
+    public override void PostLateUpdate()
     {
         transform.position = BonePosition;
     }
@@ -80,6 +81,7 @@ public class PickupGrabber : UdonSharpBehaviour
     private void Start()
     {
         _baseScale = transform.localScale;
+        _isUserInVR = Networking.LocalPlayer.IsUserInVR();
     }
 
     private void OnEnable()
@@ -172,6 +174,8 @@ public class PickupGrabber : UdonSharpBehaviour
     /// </summary>
     private void GrabPlayers()
     {
+        if (!_isUserInVR)
+            return;
         foreach (DataToken playerToken in _playersInContact.ToArray())
         {
             var playerToGrab = VRCPlayerApi.GetPlayerById(playerToken.Int);

@@ -30,8 +30,12 @@ public class PickupCommonConfig : UdonSharpBehaviour
     [Tooltip("Allows players to grab someone that is already grabbed.")]
     [SerializeField] private bool _allowStealingFromGrab = true;
 
-    [Tooltip("TextMesh Pro Text element to display your settings for the users.")]
-    [SerializeField] private TMPro.TextMeshProUGUI _settingsDisplay;
+    [Header("--- Dynamic Tutorial ---")]
+    [Tooltip("TextMesh Pro Text element to display your current size difference restriction to the users.")]
+    [SerializeField] private TMPro.TextMeshProUGUI _sizeRestrictionText;
+    [SerializeField] private GameObject _sizeRestrictionDisplay;
+    [SerializeField] private GameObject _moveToGetFreeDisplay;
+    [SerializeField] private GameObject _stealFromGrabDisplay;
 
     [Header("--- Debug ---")]
     [SerializeField] private bool _debugLogs = false;
@@ -51,15 +55,14 @@ public class PickupCommonConfig : UdonSharpBehaviour
 
     public void SetConfigTutorial()
     {
-        if (_settingsDisplay == null)
-            return;
-
-        string str = "\n";
-        if (PickupSizeRestriction)
-            str += $"- You need to be {(SizeRestrictionDifference - 1)*100}% bigger than a player to pick them up.\n";
-        if (AllowMoveToGetFree)
-            str += $"- You can get free from a grab by moving.\n";
-        _settingsDisplay.text += str;
-        Debug.Log($"Wrote text {str}");
+        if (_sizeRestrictionDisplay != null && _sizeRestrictionText != null)
+        {
+            _sizeRestrictionDisplay.SetActive(PickupSizeRestriction);
+            _sizeRestrictionText.text = $"You have to be {(SizeRestrictionDifference - 1)*100}% taller than a player to pick them up.\n";
+        }
+        if (_moveToGetFreeDisplay != null)
+            _moveToGetFreeDisplay.SetActive(AllowMoveToGetFree);
+        if (_stealFromGrabDisplay != null)
+            _moveToGetFreeDisplay.SetActive(AllowStealingFromGrab);
     }
 }

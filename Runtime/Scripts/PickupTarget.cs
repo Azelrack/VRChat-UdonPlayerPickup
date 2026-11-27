@@ -11,6 +11,7 @@ public class PickupTarget : UdonSharpBehaviour
     # region Fields
 
     private VRCPlayerApi _grabber;
+    private float _grabberHeight = 1f;
     private bool _isThrown = false;
     private Vector3 _releaseVelocity;
     private Vector3 _offset;
@@ -42,7 +43,7 @@ public class PickupTarget : UdonSharpBehaviour
 
     #region Unity Messages
 
-    private void FixedUpdate()
+    public override void PostLateUpdate()
     {
         // Fixed velocity following the grabber's limb.
         if (_grabber != null)
@@ -78,6 +79,19 @@ public class PickupTarget : UdonSharpBehaviour
             _boneToFollow = HumanBodyBones.LeftHand;
         }
     }
+
+    public override void OnPlayerLeft(VRCPlayerApi player)
+    {
+        if (_grabber == player)
+            _grabber = null;
+    }
+
+    public override void OnAvatarEyeHeightChanged(VRCPlayerApi player, float prevEyeHeightAsMeters)
+    {
+        if (player == _grabber)
+            _grabberHeight = player.GetAvatarEyeHeightAsMeters();
+    }
+
 
     public override void InputMoveHorizontal(float value, UdonInputEventArgs args)
     {
