@@ -15,10 +15,10 @@ Current state of the repository is under development, an early release is availa
 - [X] Consent to grab
 - [X] Throw players when releasing them
 - [X] Editor option to restrict grab relative to size
+- [X] Info UI presenting controls and settings
 
 ## To Do
 
-- [ ] Info UI presenting controls
 - [ ] Increase bone follow velocity depending on grabber's size
 - [ ] Increase throw force depending on grabber's size
 - [ ] Make picked up players follow the grabber's limb rotation
